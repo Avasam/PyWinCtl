@@ -42,6 +42,7 @@ jobs:
           cache: "pip"
       - run: pip install -r "requirements.txt"
       - run: mypy . --python-version=${{ matrix.python-version }}
+
   tests:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -84,3 +85,15 @@ jobs:
       - run: python test_pywinctl.py
         if: ${{ !startsWith(matrix.os, 'ubuntu') }}
         working-directory: tests
+
+  sphinx:
+    runs-on: ubuntu-24.04-arm # Keep in sync with build.os in .readthedocs.yaml
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11" # Keep in sync with build.tools.python in .readthedocs.yaml
+      - run: pip install -r "requirements.txt"
+      - name: Build docs
+        # TODO: Add --fail-on-warning, but now still too many warnings
+        run: sphinx-build --keep-going --builder html docs/source docs/_build/html
