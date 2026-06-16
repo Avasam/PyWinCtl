@@ -21,7 +21,7 @@ jobs:
       matrix:
         # Arm runners are faster (as long as the same wheels are available)
         os: [windows-11-arm, ubuntu-24.04-arm, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
       fail-fast: false
     steps:
       - uses: actions/checkout@v6
@@ -41,7 +41,7 @@ jobs:
         os: [windows-11-arm, ubuntu-24.04-arm, macos-latest]
         # TODO: Run tests in parallel on free-threaded python to catch free-threading issues
         # See: https://py-free-threading.github.io/testing/
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
       fail-fast: false
     steps:
       - uses: actions/checkout@v6
