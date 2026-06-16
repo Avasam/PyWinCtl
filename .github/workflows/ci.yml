@@ -77,9 +77,9 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           sudo apt update
-          sudo apt install gedit xvfb x11-xserver-utils
+          sudo apt install gedit xvfb x11-xserver-utils openbox dbus-x11
       - run: pip install -r "requirements.txt"
-      - run: xvfb-run python test_pywinctl.py
+      - run: xvfb-run --server-args="-screen 0 1280x1024x24" bash -c "openbox & sleep 1 && dbus-launch --exit-with-session python test_pywinctl.py"
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         working-directory: tests
       - run: python test_pywinctl.py
