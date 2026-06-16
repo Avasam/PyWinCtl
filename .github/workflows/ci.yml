@@ -76,7 +76,11 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           sudo apt update
-          sudo apt install gedit
+          sudo apt install gedit xvfb
       - run: pip install -r "requirements.txt"
+      - run: xvfb-run python test_pywinctl.py
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        working-directory: tests
       - run: python test_pywinctl.py
+        if: ${{ !startsWith(matrix.os, 'ubuntu') }}
         working-directory: tests
