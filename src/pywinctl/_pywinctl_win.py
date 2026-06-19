@@ -12,21 +12,22 @@ import threading
 import time
 from collections.abc import Sequence
 from ctypes import wintypes
-from typing import cast, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
+
 from typing_extensions import NotRequired, TypedDict
 
 if TYPE_CHECKING:
-    from win32.lib.win32gui_struct import _MENUITEMINFO, _MENUINFO
+    from win32.lib.win32gui_struct import _MENUINFO, _MENUITEMINFO
 
+import win32api
+import win32con
+import win32gui
 import win32gui_struct
 import win32process
+from pywinbox import Point, Rect, Size, pointInBox
 from win32com.client import GetObject
-import win32con
-import win32api
-import win32gui
 
-from ._main import BaseWindow, Re, _WatchDog, _findMonitorName, _WINDATA, _WINDICT
-from pywinbox import Size, Point, Rect, pointInBox
+from ._main import _WINDATA, _WINDICT, BaseWindow, Re, _findMonitorName, _WatchDog
 
 # WARNING: Changes are not immediately applied, specially for hide/show (unmap/map)
 #          You may set wait to True in case you need to effectively know if/when change has been applied.
@@ -80,7 +81,7 @@ def getAllWindows() -> list[Win32Window]:
     """
     # https://stackoverflow.com/questions/64586371/filtering-background-processes-pywin32
     # return [Win32Window(hwnd[0]) for hwnd in _findMainWindowHandles()]
-    return [window for window in __remove_bad_windows(_findWindowHandles())]
+    return __remove_bad_windows(_findWindowHandles())
 
 
 def __remove_bad_windows(windows: list[int] | None):
@@ -93,7 +94,7 @@ def __remove_bad_windows(windows: list[int] | None):
         for window in windows:
             try:
                 outList.append(Win32Window(window))
-            except:
+            except Exception:
                 pass
     return outList
 
@@ -375,7 +376,7 @@ def _findMainWindowHandles() -> list[tuple[int, int]]:
         title = win32gui.GetWindowText(hwnd)
 
         # Append HWND to list
-        if win32gui.IsWindowVisible(hwnd) and title != '' and isCloaked.value == 0:
+        if win32gui.IsWindowVisible(hwnd) and title != "" and isCloaked.value == 0:
             if not (title_info.rgstate[0] & win32con.STATE_SYSTEM_INVISIBLE):
                 handle_list.append((hwnd, win32process.GetWindowThreadProcessId(hwnd)[1]))
 
@@ -386,26 +387,26 @@ def _findMainWindowHandles() -> list[tuple[int, int]]:
 
 def _getAllApps(tryToFilter: bool = False) -> list[tuple[int, str | None]] | list[tuple[int, str]]:
     # https://stackoverflow.com/questions/550653/cross-platform-way-to-get-pids-by-process-name-in-python
-    WMI = GetObject('winmgmts:')
+    WMI = GetObject("winmgmts:")
     if tryToFilter:
         mainWindows = [w[1] for w in _findMainWindowHandles()]
-        return [(p.Properties_("ProcessID").Value, p.Properties_("Name").Value) for p in WMI.InstancesOf('Win32_Process')
+        return [(p.Properties_("ProcessID").Value, p.Properties_("Name").Value) for p in WMI.InstancesOf("Win32_Process")
                 if p.Properties_("ProcessID").Value in mainWindows]
     else:
-        return [(p.Properties_("ProcessID").Value, p.Properties_("Name").Value) for p in WMI.InstancesOf('Win32_Process')]
+        return [(p.Properties_("ProcessID").Value, p.Properties_("Name").Value) for p in WMI.InstancesOf("Win32_Process")]
 
 
 def _getAllAppsDict(tryToFilter: bool = False) -> dict[str, int | str]:
     # https://stackoverflow.com/questions/550653/cross-platform-way-to-get-pids-by-process-name-in-python
-    WMI = GetObject('winmgmts:')
+    WMI = GetObject("winmgmts:")
     result: dict[str, int | str] = {}
     if tryToFilter:
         mainWindows = [w[1] for w in _findMainWindowHandles()]
-        for p in WMI.InstancesOf('Win32_Process'):
+        for p in WMI.InstancesOf("Win32_Process"):
             if p.Properties_("ProcessID").Value in mainWindows:
                result[p.Properties_("ProcessID").Value] = p.Properties_("Name").Value
     else:
-        for p in WMI.InstancesOf('Win32_Process'):
+        for p in WMI.InstancesOf("Win32_Process"):
             result[p.Properties_("ProcessID").Value] = p.Properties_("Name").Value
     return result
 
@@ -438,16 +439,16 @@ class tagWINDOWINFO(ctypes.Structure):
         ) -> None: ...
 
     _fields_ = [
-        ('cbSize', wintypes.DWORD),
-        ('rcWindow', wintypes.RECT),
-        ('rcClient', wintypes.RECT),
-        ('dwStyle', wintypes.DWORD),
-        ('dwExStyle', wintypes.DWORD),
-        ('dwWindowStatus', wintypes.DWORD),
-        ('cxWindowBorders', wintypes.UINT),
-        ('cyWindowBorders', wintypes.UINT),
-        ('atomWindowType', wintypes.ATOM),
-        ('wCreatorVersion', wintypes.WORD)
+        ("cbSize", wintypes.DWORD),
+        ("rcWindow", wintypes.RECT),
+        ("rcClient", wintypes.RECT),
+        ("dwStyle", wintypes.DWORD),
+        ("dwExStyle", wintypes.DWORD),
+        ("dwWindowStatus", wintypes.DWORD),
+        ("cxWindowBorders", wintypes.UINT),
+        ("cyWindowBorders", wintypes.UINT),
+        ("atomWindowType", wintypes.ATOM),
+        ("wCreatorVersion", wintypes.WORD)
     ]
 
 
@@ -460,7 +461,7 @@ def _getWindowInfo(hWnd: int | str | bytes | bool | None) -> tagWINDOWINFO:
     wi.cbSize = ctypes.sizeof(wi)
     try:
         ctypes.windll.user32.GetWindowInfo(hWnd, ctypes.byref(wi))
-    except:
+    except Exception:
         pass
 
     # None of these seem to return the right value, at least not in my system, but might be useful for other metrics
@@ -521,7 +522,7 @@ class Win32Window(BaseWindow):
             try:
                 xBorder = ctypes.windll.user32.GetSystemMetrics(win32con.SM_CXBORDER)
                 yBorder = ctypes.windll.user32.GetSystemMetrics(win32con.SM_CYBORDER)
-            except:
+            except Exception:
                 xBorder = 1
                 yBorder = 1
             xOffset -= xBorder
@@ -544,7 +545,7 @@ class Win32Window(BaseWindow):
         return Rect(rcClient.left, rcClient.top, rcClient.right, rcClient.bottom)
 
     def __repr__(self) -> str:
-        return '%s(hWnd=%s)' % (self.__class__.__name__, self._hWnd)
+        return "%s(hWnd=%s)" % (self.__class__.__name__, self._hWnd)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Win32Window) and self._hWnd == other._hWnd
@@ -644,7 +645,7 @@ class Win32Window(BaseWindow):
         """
         try:
             win32gui.SetForegroundWindow(self._hWnd)
-        except:
+        except Exception:
             pass
         return self.isActive
 
@@ -1019,7 +1020,7 @@ class Win32Window(BaseWindow):
     #                 desc: str = win32api.GetFileVersionInfo(exeName, stringFileInfo)  # type: ignore[func-returns-value]
     #                 if desc:
     #                     description = desc
-    #         except:
+    #         except Exception:
     #             pass
     #         return description
     #
@@ -1040,7 +1041,7 @@ class Win32Window(BaseWindow):
     #             w: pywinauto.WindowSpecification = sysTray.child_window(title_re=name, found_index=0)
     #             ret: Rect = w.rectangle()
     #             return Rect(ret.left, ret.top, ret.right, ret.bottom)
-    #         except:
+    #         except Exception:
     #             return None
     #
     #     def _intToRGBA(color: int) -> Tuple[int, int, int, int]:

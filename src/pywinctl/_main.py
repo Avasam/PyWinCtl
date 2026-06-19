@@ -10,8 +10,12 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any, ClassVar, TypedDict
 
-from pymonctl import findMonitorsAtPoint, getAllMonitors, getAllMonitorsDict
-from pymonctl import getMousePos as getMouse
+from pymonctl import (
+    findMonitorsAtPoint,
+    getAllMonitors,
+    getAllMonitorsDict,
+    getMousePos as getMouse,
+)
 from pywinbox import Box, Point, PyWinBox, Rect, Size
 
 
@@ -574,7 +578,6 @@ class _WatchDog:
 
         :param tryToFind: set to ''True'' to try to find a similar title. Set to ''False'' to deactivate this behavior
         """
-        pass
 
     def stop(self):
         """
@@ -591,7 +594,7 @@ class _WatchDog:
         """
         try:
             alive = bool(self._watchdog and self._watchdog.is_alive())
-        except:
+        except Exception:
             alive = False
         return alive
 
@@ -663,7 +666,7 @@ class _WatchDogWorker(threading.Thread):
 
             if self._changedDisplayCB:
                 self._display = self._win.getDisplay()
-        except:
+        except Exception:
             if self._isAliveCB:
                 self._isAliveCB(False)
             self.kill()
@@ -744,7 +747,7 @@ class _WatchDogWorker(threading.Thread):
                     if self._display != display:
                         self._display = display
                         self._changedDisplayCB(display)
-            except:
+            except Exception:
                 if self._isAliveCB:
                     self._isAliveCB(False)
                 self.kill()
@@ -853,7 +856,7 @@ def _levenshtein(seq1: str, seq2: str) -> float:
     matrix = [[0 for _y in range(size_y)] for _x in range(size_x)]
     for x in range(size_x):
         matrix[x][0] = x
-    matrix[0] = list(range(0, size_y))
+    matrix[0] = list(range(size_y))
 
     for x in range(1, size_x):
         for y in range(1, size_y):
@@ -914,7 +917,7 @@ def getAllScreens():
                 Bits per pixel referred to the display color depth
     """
     import warnings
-    warnings.warn('getAllScreens() is deprecated. Use getAllMonitorsDict() from PyMonCtl module instead',
+    warnings.warn("getAllScreens() is deprecated. Use getAllMonitorsDict() from PyMonCtl module instead",
                   DeprecationWarning, stacklevel=2)
     return getAllMonitorsDict()
 
@@ -927,7 +930,7 @@ def getScreenSize(name: str = ""):
     :return: Size struct or None
     """
     import warnings
-    warnings.warn('getScreenSize() is deprecated. Use monitor.getSize() from PyMonCtl module instead',
+    warnings.warn("getScreenSize() is deprecated. Use monitor.getSize() from PyMonCtl module instead",
                   DeprecationWarning, stacklevel=2)
     for monitor in getAllMonitors():
         if (name and name == monitor.name) or (not name and monitor.isPrimary):
@@ -944,7 +947,7 @@ def getWorkArea(name: str = ""):
     :return: Rect struct or None
     """
     import warnings
-    warnings.warn('getWorkArea() is deprecated. Use monitor.getWorkArea() from PyMonCtl module instead',
+    warnings.warn("getWorkArea() is deprecated. Use monitor.getWorkArea() from PyMonCtl module instead",
                   DeprecationWarning, stacklevel=2)
     for monitor in getAllMonitors():
         if (name and name == monitor.name) or (not name and monitor.isPrimary):
@@ -959,11 +962,12 @@ def getMousePos():
     :return: Point struct
     """
     import warnings
-    warnings.warn('getMousePos() is deprecated. Use getMousePos() from PyMonCtl module instead',
+    warnings.warn("getMousePos() is deprecated. Use getMousePos() from PyMonCtl module instead",
                   DeprecationWarning, stacklevel=2)
     return getMouse()
 
 
+# ruff: disable[T201]
 def displayWindowsUnderMouse(xOffset: int = 0, yOffset: int = 0) -> None:
     """
     This function is meant to be run from the command line. It will
@@ -971,27 +975,28 @@ def displayWindowsUnderMouse(xOffset: int = 0, yOffset: int = 0) -> None:
     of the windows under it
     """
     if xOffset != 0 or yOffset != 0:
-        print('xOffset: %s yOffset: %s' % (xOffset, yOffset))
+        print("xOffset: %s yOffset: %s" % (xOffset, yOffset))
     try:
         prevWindows = None
         while True:
             x, y = getMouse()
-            positionStr = 'X: ' + str(x - xOffset).rjust(4) + ' Y: ' + str(y - yOffset).rjust(4) + '  (Press Ctrl-C to quit)'
+            positionStr = "X: " + str(x - xOffset).rjust(4) + " Y: " + str(y - yOffset).rjust(4) + "  (Press Ctrl-C to quit)"
             windows = getWindowsAt(x, y)
             if windows != prevWindows:
-                print('\n')
+                print("\n")
                 prevWindows = windows
                 for win in windows:
                     name = win.title
-                    eraser = '' if len(name) >= len(positionStr) else ' ' * (len(positionStr) - len(name))
-                    sys.stdout.write(name + eraser + '\n')
-            sys.stdout.write('\b' * len(positionStr))
+                    eraser = "" if len(name) >= len(positionStr) else " " * (len(positionStr) - len(name))
+                    sys.stdout.write(name + eraser + "\n")
+            sys.stdout.write("\b" * len(positionStr))
             sys.stdout.write(positionStr)
             sys.stdout.flush()
             time.sleep(0.3)
     except KeyboardInterrupt:
-        sys.stdout.write('\n\n')
+        sys.stdout.write("\n\n")
         sys.stdout.flush()
+# ruff: enable[T201]
 
 
 class _WINDATA(TypedDict):
@@ -1008,50 +1013,55 @@ class _WINDICT(TypedDict):  # noqa: PYI049 # Private symbol imported by internal
 
 # Explicit re-exports
 if sys.platform == "darwin":
-    from ._pywinctl_macos import MacOSWindow as Window
-    from ._pywinctl_macos import checkPermissions as checkPermissions
-    from ._pywinctl_macos import getActiveWindow as getActiveWindow
-    from ._pywinctl_macos import getActiveWindowTitle as getActiveWindowTitle
-    from ._pywinctl_macos import getAllAppsNames as getAllAppsNames
-    from ._pywinctl_macos import getAllAppsWindowsTitles as getAllAppsWindowsTitles
-    from ._pywinctl_macos import getAllTitles as getAllTitles
-    from ._pywinctl_macos import getAllWindows as getAllWindows
-    from ._pywinctl_macos import getAllWindowsDict as getAllWindowsDict
-    from ._pywinctl_macos import getAppsWithName as getAppsWithName
-    from ._pywinctl_macos import getTopWindowAt as getTopWindowAt
-    from ._pywinctl_macos import getWindowsAt as getWindowsAt
-    from ._pywinctl_macos import getWindowsWithTitle as getWindowsWithTitle
+    from ._pywinctl_macos import (
+        MacOSWindow as Window,
+        checkPermissions as checkPermissions,
+        getActiveWindow as getActiveWindow,
+        getActiveWindowTitle as getActiveWindowTitle,
+        getAllAppsNames as getAllAppsNames,
+        getAllAppsWindowsTitles as getAllAppsWindowsTitles,
+        getAllTitles as getAllTitles,
+        getAllWindows as getAllWindows,
+        getAllWindowsDict as getAllWindowsDict,
+        getAppsWithName as getAppsWithName,
+        getTopWindowAt as getTopWindowAt,
+        getWindowsAt as getWindowsAt,
+        getWindowsWithTitle as getWindowsWithTitle,
+    )
 elif sys.platform == "win32":
-    from ._pywinctl_win import Win32Window as Window
-    from ._pywinctl_win import checkPermissions as checkPermissions
-    from ._pywinctl_win import getActiveWindow as getActiveWindow
-    from ._pywinctl_win import getActiveWindowTitle as getActiveWindowTitle
-    from ._pywinctl_win import getAllAppsNames as getAllAppsNames
-    from ._pywinctl_win import getAllAppsWindowsTitles as getAllAppsWindowsTitles
-    from ._pywinctl_win import getAllTitles as getAllTitles
-    from ._pywinctl_win import getAllWindows as getAllWindows
-    from ._pywinctl_win import getAllWindowsDict as getAllWindowsDict
-    from ._pywinctl_win import getAppsWithName as getAppsWithName
-    from ._pywinctl_win import getTopWindowAt as getTopWindowAt
-    from ._pywinctl_win import getWindowsAt as getWindowsAt
-    from ._pywinctl_win import getWindowsWithTitle as getWindowsWithTitle
+    from ._pywinctl_win import (
+        Win32Window as Window,
+        checkPermissions as checkPermissions,
+        getActiveWindow as getActiveWindow,
+        getActiveWindowTitle as getActiveWindowTitle,
+        getAllAppsNames as getAllAppsNames,
+        getAllAppsWindowsTitles as getAllAppsWindowsTitles,
+        getAllTitles as getAllTitles,
+        getAllWindows as getAllWindows,
+        getAllWindowsDict as getAllWindowsDict,
+        getAppsWithName as getAppsWithName,
+        getTopWindowAt as getTopWindowAt,
+        getWindowsAt as getWindowsAt,
+        getWindowsWithTitle as getWindowsWithTitle,
+    )
 elif sys.platform == "linux":
-    from ._pywinctl_linux import LinuxWindow as Window
-    from ._pywinctl_linux import checkPermissions as checkPermissions
-    from ._pywinctl_linux import getActiveWindow as getActiveWindow
-    from ._pywinctl_linux import getActiveWindowTitle as getActiveWindowTitle
-    from ._pywinctl_linux import getAllAppsNames as getAllAppsNames
-    from ._pywinctl_linux import getAllAppsWindowsTitles as getAllAppsWindowsTitles
-    from ._pywinctl_linux import getAllTitles as getAllTitles
-    from ._pywinctl_linux import getAllWindows as getAllWindows
-    from ._pywinctl_linux import getAllWindowsDict as getAllWindowsDict
-    from ._pywinctl_linux import getAppsWithName as getAppsWithName
-    from ._pywinctl_linux import getTopWindowAt as getTopWindowAt
-    from ._pywinctl_linux import getWindowsAt as getWindowsAt
-    from ._pywinctl_linux import getWindowsWithTitle as getWindowsWithTitle
+    from ._pywinctl_linux import (
+        LinuxWindow as Window,
+        checkPermissions as checkPermissions,
+        getActiveWindow as getActiveWindow,
+        getActiveWindowTitle as getActiveWindowTitle,
+        getAllAppsNames as getAllAppsNames,
+        getAllAppsWindowsTitles as getAllAppsWindowsTitles,
+        getAllTitles as getAllTitles,
+        getAllWindows as getAllWindows,
+        getAllWindowsDict as getAllWindowsDict,
+        getAppsWithName as getAppsWithName,
+        getTopWindowAt as getTopWindowAt,
+        getWindowsAt as getWindowsAt,
+        getWindowsWithTitle as getWindowsWithTitle,
+    )
 else:
     raise NotImplementedError(
         "PyWinCtl currently does not support this platform. "
         + "If you think you can help, please contribute! https://github.com/Kalmat/PyWinCtl"
     )
-Window = Window
