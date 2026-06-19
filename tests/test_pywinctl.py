@@ -168,52 +168,52 @@ def basic_test(npw: pywinctl.Window | None, wait: bool, timelap: float) -> None:
     npw.watchdog.start(movedCB=moveCB, resizedCB=resizeCB, isVisibleCB=visibleCB, isActiveCB=activeCB)
 
     print("MOVE LEFT", 200)
-    test_moveresize('left', 200)
+    test_moveresize("left", 200)
     print("MOVE RIGHT", 860)
-    test_moveresize('right', 860)
+    test_moveresize("right", 860)
     print("MOVE TOP", 200)
-    test_moveresize('top', 200)
+    test_moveresize("top", 200)
     print("MOVE BOTTOM", 800)
-    test_moveresize('bottom', 800)
+    test_moveresize("bottom", 800)
     print("MOVE TOPLEFT", 300, 400)
-    test_moveresize('topleft', (300, 400))
+    test_moveresize("topleft", (300, 400))
     print("MOVE TOPRIGHT", 800, 400)
-    test_moveresize('topright', (800, 400))
+    test_moveresize("topright", (800, 400))
     print("MOVE BOTTOMLEFT", 300, 700)
-    test_moveresize('bottomleft', (300, 700))
+    test_moveresize("bottomleft", (300, 700))
     print("MOVE BOTTOMRIGHT", 850, 900)
-    test_moveresize('bottomright', (850, 900))
+    test_moveresize("bottomright", (850, 900))
     print("MOVE MIDLEFT", 300, 400)
-    test_moveresize('midleft', (300, 400))
+    test_moveresize("midleft", (300, 400))
     print("MOVE MIDRIGHT", 770, 400)
-    test_moveresize('midright', (770, 400))
+    test_moveresize("midright", (770, 400))
     print("MOVE MIDTOP", 800, 400)
-    test_moveresize('midtop', (800, 400))
+    test_moveresize("midtop", (800, 400))
     print("MOVE MIDBOTTOM", 700, 700)
-    test_moveresize('midbottom', (700, 700))
+    test_moveresize("midbottom", (700, 700))
     print("MOVE CENTER", 760, 400)
-    test_moveresize('center', (760, 400))
+    test_moveresize("center", (760, 400))
     print("MOVE CENTERX", 900)
-    test_moveresize('centerx', 900)
+    test_moveresize("centerx", 900)
     print("MOVE CENTERY", 600)
-    test_moveresize('centery', 600)
+    test_moveresize("centery", 600)
     print("RESIZE WIDTH", 620)
-    test_moveresize('width', 620)
+    test_moveresize("width", 620)
     print("RESIZE HEIGHT", 410)
-    test_moveresize('height', 410)
+    test_moveresize("height", 410)
     print("RESIZE", 640, 420)
-    test_moveresize('size', (640, 420))
+    test_moveresize("size", (640, 420))
 
     # Test window stacking
     print("LOWER WINDOW")
     lowered = npw.lowerWindow()
     time.sleep(timelap*3)
-    assert lowered, 'Window has not been lowered'
+    assert lowered, "Window has not been lowered"
 
     print("RAISE WINDOW")
     raised = npw.raiseWindow()
     time.sleep(timelap)
-    assert raised, 'Window has not been raised'
+    assert raised, "Window has not been raised"
 
     if sys.platform != "darwin":
         print("SEND BEHIND")
@@ -282,5 +282,5 @@ def basic_test(npw: pywinctl.Window | None, wait: bool, timelap: float) -> None:
     npw.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_basic()

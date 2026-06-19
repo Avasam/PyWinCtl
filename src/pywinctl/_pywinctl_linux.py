@@ -71,7 +71,7 @@ def getActiveWindow() -> LinuxWindow | None:
     # https://discourse.gnome.org/t/get-window-id-of-a-window-object-window-get-xwindow-doesnt-exist/10956/3
     # https://www.reddit.com/r/gnome/comments/d8x27b/is_there_a_program_that_can_show_keypresses_on/
     win_id: str | int = 0
-    if os.environ.get('XDG_SESSION_TYPE', '').lower() == "wayland":
+    if os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland":
         # IN SWAY: swaymsg -t get_tree | jq '.. | select(.type?) | select(.focused==true).pid'
         # pynput / mouse --> Not working (no global events allowed, only application events)
         _, activeWindow = _WgetAllWindows()
@@ -112,7 +112,7 @@ def getAllWindows():
 
     :return: list of Window objects
     """
-    if os.environ.get('XDG_SESSION_TYPE', '').lower() == "wayland":
+    if os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland":
         windowsList, _ = _WgetAllWindows()
         windows = [str(win["id"]) for win in windowsList]
     else:
@@ -336,8 +336,7 @@ def getTopWindowAt(x: int, y: int):
     for window in reversed(windows):
         if pointInBox(x, y, window.box):
             return window
-    else:
-        return None
+    return None
 
 
 def _WgetAllWindows() -> tuple[list[dict[str, str | bool]], dict[str, str | bool]]:
@@ -345,10 +344,23 @@ def _WgetAllWindows() -> tuple[list[dict[str, str | bool]], dict[str, str | bool
     # Built-in / official apps (e.g. Terminal or gedit) do not fulfill proper get_description() to get the Xid
     windowsList: list[dict[str, str | bool]] = [{}]
     activeWindow: dict[str, str | bool] = {}
-    cmd = ('gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell '
-           '--method org.gnome.Shell.Eval "global.get_window_actors()'
-           '.map(a=>a.meta_window)'
-           '.map(w=>({class: w.get_wm_class(), title: w.get_title(), active: w.has_focus(), id: w.get_description(), id2: w.get_id(), id3: w.get_pid()}))"')
+    shell_eval = (
+        "global.get_window_actors()"
+        + ".map(a=>a.meta_window)"
+        + ".map(w=>({class: w.get_wm_class(), title: w.get_title(), active: w.has_focus(), id: w.get_description(), id2: w.get_id(), id3: w.get_pid()}))"
+    )
+    cmd = (
+        "gdbus",
+        "call",
+        "--session",
+        "--dest",
+        "org.gnome.Shell",
+        "--object-path",
+        "/org/gnome/Shell",
+        "--method",
+        "org.gnome.Shell.Eval",
+        shell_eval,
+    )
     ret = subprocess.check_output(cmd, shell=True, timeout=1).decode("utf-8").replace("\n", "")
     if ret and ret.startswith("(true, "):
         windows: list[str] = (str(ret[8:-2]).replace("[", "").replace("]", "").replace("},{", "}|&|{").split("|&|"))
@@ -369,7 +381,7 @@ def __remove_bad_windows(windows: list[str] | list[int] | None) -> list[LinuxWin
                 # Thanks to Seraphli (https://github.com/Seraphli) for pointing out this issue!
                 if window:
                     outList.append(LinuxWindow(window))
-            except:
+            except Exception:
                 pass
     return outList
 
@@ -391,8 +403,8 @@ class LinuxWindow(BaseWindow):
         self._xWin: XWindow = self._win.xWindow
         self.watchdog = _WatchDog(self)
 
-        self._currDesktop = os.environ.get('XDG_CURRENT_DESKTOP', "").lower()
-        self._currSessionType = os.environ.get('XDG_SESSION_TYPE', "").lower()
+        self._currDesktop = os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
+        self._currSessionType = os.environ.get("XDG_SESSION_TYPE", "").lower()
         self._motifHints: list[int] = []
 
     def getExtraFrameSize(self, includeBorder: bool = True) -> tuple[int, int, int, int]:
@@ -442,7 +454,7 @@ class LinuxWindow(BaseWindow):
         return ret
 
     def __repr__(self) -> str:
-        return '%s(hWnd=%s)' % (self.__class__.__name__, self._hWnd)
+        return "%s(hWnd=%s)" % (self.__class__.__name__, self._hWnd)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, LinuxWindow) and self._hWnd == other._hWnd
@@ -693,10 +705,10 @@ class LinuxWindow(BaseWindow):
             # Mint: "Desktop" title is language-dependent. Using its class instead
             # KDE: desktop and icons seem to be the same window. Likely it's not possible to place a window in between
             # TODO: Test / find in other OS
-            desktop = _xlibGetAllWindows(title="@!0,0;BDHF", klass=('nemo-desktop', 'Nemo-desktop'))
+            desktop = _xlibGetAllWindows(title="@!0,0;BDHF", klass=("nemo-desktop", "Nemo-desktop"))
             self.lowerWindow()
             for d in desktop:
-                w: XWindow = self._display.create_resource_object('window', d.id)
+                w: XWindow = self._display.create_resource_object("window", d.id)
                 w.raise_window()
                 self._display.flush()
             types = self._win.getWmWindowType(True)
@@ -742,7 +754,7 @@ class LinuxWindow(BaseWindow):
 
                 ret = self._win.getProperty("_MOTIF_WM_HINTS")
                 # Cinnamon uses this as default: [2, 1, 1, 0, 0]
-                self._motifHints = [a for a in ret.value] if ret and hasattr(ret, "value") else [2, 0, 0, 0, 0]
+                self._motifHints = list(ret.value) if ret and hasattr(ret, "value") else [2, 0, 0, 0, 0]
                 self._win.changeProperty("_MOTIF_WM_HINTS", [0, 0, 0, 0, 0])
 
             self._win.setWmWindowType(Props.WindowType.DESKTOP)
@@ -810,7 +822,7 @@ class LinuxWindow(BaseWindow):
 
         :param child: handle of the window you want to check if the current window is parent of
         """
-        win = self._display.create_resource_object('window', child)
+        win = self._display.create_resource_object("window", child)
         return bool(win.query_tree().parent.id == self._hWnd)
     isParentOf = isParent  # isParentOf is an alias of isParent method
 

@@ -14,6 +14,46 @@ extend-select = [
   "RUF", # Ruff-specific rules
   "F404", # late-future-import
   "PGH", # pygrep-hooks (blanket-* rules)
+
+  "A", # flake8-builtins
+  "ASYNC", # flake8-async
+  "B", # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "COM", # flake8-commas
+  "DTZ", # flake8-datetimez
+  "FLY", # flynt
+  "FURB", # refurb
+  "G", # flake8-logging-format
+  "I", # isort
+  "INT", # flake8-gettext
+  "ISC", # flake8-implicit-str-concat
+  "LOG", # flake8-logging
+  "N", # pep8-naming
+  "PERF", # Perflint
+  "PIE", # flake8-pie
+  "PLE", # Pylint Error
+  "PLW", # Pylint Warning
+  "Q", # flake8-quotes
+  "RSE", # flake8-raise
+  "SLOT", # flake8-slots
+  "T10", # flake8-debugger
+  "T20", # flake8-print
+  "TD", # flake8-todos
+  "TRY", # tryceratops
+  "W",
+
+  # TODO
+  # "BLE", # flake8-blind-except
+  # "C90", # mccabe
+  # "D", # pydocstyle
+  # "EXE", # flake8-executable
+  # "PLC", # Pylint Convention
+  # "PLR", # Pylint Refactor
+  # "PTH", # flake8-use-pathlib
+  # "RET", # flake8-return
+  # "S", # flake8-bandit
+  # "SIM", # flake8-simplify  # Simplifications but nothing performance related
+  # "DOC", # pydoclint # Only works in preview
 ]
 ignore = [
   # Only enforce return types on public functions. Where otherwise mypy infers as Any
@@ -24,11 +64,36 @@ ignore = [
   # Autofixes print-f style formatting to f-strings,
   # which is sometimes simpler, but looses template code reading semantics
   "UP032", # f-string
+  # This project uses a ton of asserts
+  "S101", # assert
+  # Allow differentiating between broken (FIXME) and to be done/added/completed (TODO)
+  "TD001", # flake8-todos: invalid-todo-tag
+  # Using git blame to find author of TODO is sufficient
+  "TD002", # flake8-todos
+  # Not all TODOs are worth an issue, this would be better as a warning
+  "TD003", # flake8-todos: missing-todo-link
+  # Conflict with formatters
+  "COM812", # missing-trailing-comma
+  # Enabling this would force explicit string concatenation, which we disallow
+  "ISC003", # explicit-string-concatenation
+  # Good to watch for, but often unfixable
+  # Anyway Python 3.11 introduced "zero cost" exception handling
+  "PERF203", # try-except-in-loop,
   # TC helps prevent circular imports, reduce runtime cost of typing symbols,
   # and prevent leaking implementations details into modules
   # However stdlib is not at risk of circular import, is clearly not public API,
   # and assume it's gonna be included in the import chain at some point anyway
   "TC003", # typing-only-standard-library-import
+  # Short messages are still considered "long" messages
+  "TRY003", # tryceratops : raise-vanilla-args
+
+  # This project mostly follows camelCase conventions.
+  # Changing these now would be a massive breaking change.
+  "N802", # invalid-function-name
+  "N803", # invalid-argument-name
+  "N806", # non-lowercase-variable-in-function
+  "N815", # mixed-case-variable-in-class-scope
+
   # Typeshed doesn't want complex or non-literal defaults for maintenance and testing reasons.
   # This doesn't affect us, let's have more complete stubs.
   "PYI011", # typed-argument-default-in-stub
@@ -38,12 +103,25 @@ ignore = [
   # TODO: Consider later
   "UP031", # printf-string-formatting
   "RUF059", # unused-unpacked-variable
-  "E722", # bare-except
+  # TODO
+  "PERF401",
+  "PERF402",
+  "N801",
+  "PLW1641",
+
+  # Often just leads to redundant more verbose code when needing an actual str
+  "PTH208", # Use `pathlib.Path.iterdir()` instead.
+  # Too many magic number "2" that are preferable inline. https://github.com/astral-sh/ruff/issues/10009
+  "PLR2004", # magic-value-comparison
 ]
 # F401 would remove imports not marked as explicit re-exports, which may break API boundaries
 extend-unsafe-fixes = ["F401"]
 
 [lint.per-file-ignores]
+"tests/**" = [
+  # Using print to log in tests is acceptable
+  "T20", # lake8-print
+]
 "**/typings/**/*.pyi" = [
   "PGH003", # TODO: Blanket ignores until using pyobj type stubs
   "F811", # Re-exports false positives
@@ -70,6 +148,15 @@ extend-unsafe-fixes = ["F401"]
   "ANN2",
 ]
 
+# https://docs.astral.sh/ruff/settings/#lintflake8-implicit-str-concat
+[lint.flake8-implicit-str-concat]
+allow-multiline = false
+
 # https://docs.astral.sh/ruff/settings/#lintflake8-type-checking
 [lint.flake8-type-checking]
 quote-annotations = true
+
+# https://docs.astral.sh/ruff/settings/#lintisort
+[lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = false
