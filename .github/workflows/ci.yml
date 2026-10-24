@@ -69,7 +69,11 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           sudo apt update
-          sudo apt install gedit xvfb x11-xserver-utils openbox dbus-x11
+          # xvfb+openbox: headless X server and WM
+          # gedit: the test window (not preinstalled on GitHub runners)
+          # x11-xserver-utils (xrandr/xset): required by tests for window geometry
+          # dbus-x11: dbus-launch, so the GTK app (gedit) gets a session bus
+          sudo apt install -y xvfb openbox gedit x11-xserver-utils dbus-x11
       - uses: astral-sh/setup-uv@v8.2.0
         with:
           python-version: ${{ matrix.python-version }}

@@ -12,21 +12,21 @@ import threading
 import time
 from collections.abc import Sequence
 from ctypes import wintypes
-from typing import cast, Any, TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
+import win32api
+import win32con
+import win32gui
 import win32gui_struct
 import win32process
+from pywinbox import Point, Rect, Size, pointInBox
 from win32com.client import GetObject
-import win32con
-import win32api
-import win32gui
 
-from ._main import BaseWindow, Re, _WatchDog, _findMonitorName, _WINDATA, _WINDICT
-from pywinbox import Size, Point, Rect, pointInBox
+from ._main import _WINDATA, _WINDICT, BaseWindow, Re, _findMonitorName, _WatchDog
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired
-    from win32.lib.win32gui_struct import _MENUITEMINFO, _MENUINFO
+    from win32.lib.win32gui_struct import _MENUINFO, _MENUITEMINFO
 
 # WARNING: Changes are not immediately applied, specially for hide/show (unmap/map)
 #          You may set wait to True in case you need to effectively know if/when change has been applied.
@@ -545,7 +545,7 @@ class Win32Window(BaseWindow):
         return Rect(rcClient.left, rcClient.top, rcClient.right, rcClient.bottom)
 
     def __repr__(self) -> str:
-        return '%s(hWnd=%s)' % (self.__class__.__name__, self._hWnd)
+        return '{}(hWnd={})'.format(self.__class__.__name__, self._hWnd)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Win32Window) and self._hWnd == other._hWnd

@@ -441,7 +441,7 @@ class LinuxWindow(BaseWindow):
         return ret
 
     def __repr__(self) -> str:
-        return '%s(hWnd=%s)' % (self.__class__.__name__, self._hWnd)
+        return '{}(hWnd={})'.format(self.__class__.__name__, self._hWnd)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, LinuxWindow) and self._hWnd == other._hWnd

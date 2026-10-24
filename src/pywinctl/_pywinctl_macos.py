@@ -16,13 +16,13 @@ import subprocess
 import threading
 import time
 from collections.abc import Iterable, Sequence
-from typing import Any, cast, ClassVar, TYPE_CHECKING, TypedDict, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypedDict, cast
 
 import AppKit
 import Quartz
+from pywinbox import Point, Rect, Size, pointInBox
 
-from ._main import BaseWindow, Re, _WatchDog, _findMonitorName, _WINDATA, _WINDICT
-from pywinbox import Size, Point, Rect, pointInBox
+from ._main import _WINDATA, _WINDICT, BaseWindow, Re, _findMonitorName, _WatchDog
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -583,7 +583,7 @@ class MacOSWindow(BaseWindow):
         return res
 
     def __repr__(self) -> str:
-        return '%s(hWnd=%s)' % (self.__class__.__name__, self._app)
+        return '{}(hWnd={})'.format(self.__class__.__name__, self._app)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, MacOSWindow) and self._app == other._app
@@ -1144,10 +1144,10 @@ class MacOSWindow(BaseWindow):
         cmd = """osascript -s 's' -e 'tell application "System Events"
                                         set appPID to "0"
                                         try
-                                            set appPID to unix id of first application process whose name is "%s"
+                                            set appPID to unix id of first application process whose name is "{}"
                                         end try
                                     end tell
-                                    return appPID'""" % self._appName
+                                    return appPID'""".format(self._appName)
         ret = subprocess.check_output(cmd, shell=True).decode(encoding="utf-8").replace("\n", "") \
             .replace('missing value', "0")
         if ret and ret != "0":
@@ -1436,25 +1436,25 @@ class MacOSWindow(BaseWindow):
 
                         cmd = """on run arg1
                                     set procName to arg1 as string
-                                    set nameList to {}
-                                    set sizeList to {}
-                                    set posList to {}
-                                    set attrList to {}
+                                    set nameList to {{}}
+                                    set sizeList to {{}}
+                                    set posList to {{}}
+                                    set attrList to {{}}
                                     try
                                         tell application "System Events"
                                             tell process procName
                                                 tell menu bar 1
-                                                    %s
-                                                    %s
-                                                    %s
-                                                    %s
+                                                    {}
+                                                    {}
+                                                    {}
+                                                    {}
                                                 end tell
                                             end tell
                                         end tell
                                     end try
-                                    return {nameList, sizeList, posList, attrList}
+                                    return {{nameList, sizeList, posList, attrList}}
                                 end run
-                                """ % (subCmd1, subCmd2, subCmd3, subCmd4)
+                                """.format(subCmd1, subCmd2, subCmd3, subCmd4)
                         # https://stackoverflow.com/questions/69774133/how-to-use-global-variables-inside-of-an-applescript-function-for-a-python-code
                         # Didn't find a way to get the "injected code" working if passed this way
                         proc = subprocess.Popen(['osascript', '-s', 's', '-', str(self._parent._app.localizedName())],
@@ -1579,10 +1579,10 @@ class MacOSWindow(BaseWindow):
                     part = ""
                     for i, item in enumerate(itemPath[1:-1]):
                         if i % 2 == 0:
-                            part = str(' of menu "%s" of menu item "%s"' % (item, item)) + part
+                            part = str(' of menu "{}" of menu item "{}"'.format(item, item)) + part
                         else:
-                            part = str(' of menu item "%s" of menu "%s"' % (item, item)) + part
-                    subCmd = str('click menu item "%s"' % itemPath[-1]) + part + str(' of menu "%s" of menu bar item "%s"' % (itemPath[0], itemPath[0]))
+                            part = str(' of menu item "{}" of menu "{}"'.format(item, item)) + part
+                    subCmd = str('click menu item "{}"'.format(itemPath[-1])) + part + str(' of menu "{}" of menu bar item "{}"'.format(itemPath[0], itemPath[0]))
 
                     cmd = """on run arg1
                                 set procName to arg1 as string
@@ -1590,13 +1590,13 @@ class MacOSWindow(BaseWindow):
                                     tell application "System Events"
                                         tell process procName
                                             tell menu bar 1
-                                                %s
+                                                {}
                                             end tell
                                         end tell
                                     end tell
                                 end try
                             end run
-                            """ % subCmd
+                            """.format(subCmd)
 
                     proc = subprocess.Popen(['osascript', '-s', 's', '-', str(self._parent._app.localizedName())], 
                                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf8')
@@ -1640,10 +1640,10 @@ class MacOSWindow(BaseWindow):
                     part = ""
                     for i, item in enumerate(menuPath[:-1]):
                         if i % 2 == 0:
-                            part = str(' of menu "%s"' % item) + part
+                            part = str(' of menu "{}"'.format(item)) + part
                         else:
-                            part = str(' of menu item "%s"' % item) + part
-                    subCmd = 'set itemCount to count of every menu item' + part + str(' of menu bar item "%s"' % menuPath[0])
+                            part = str(' of menu item "{}"'.format(item)) + part
+                    subCmd = 'set itemCount to count of every menu item' + part + str(' of menu bar item "{}"'.format(menuPath[0]))
 
                     cmd = """on run arg1
                                 set procName to arg1 as string
@@ -1652,14 +1652,14 @@ class MacOSWindow(BaseWindow):
                                     tell application "System Events"
                                         tell process procName
                                             tell menu bar 1
-                                                %s
+                                                {}
                                             end tell
                                         end tell
                                     end tell
                                 end try
                                 return itemCount as integer
                             end run
-                            """ % subCmd
+                            """.format(subCmd)
 
                     proc = subprocess.Popen(['osascript', '-s', 's', '-', str(self._parent._app.localizedName())], 
                                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf8')
@@ -1701,25 +1701,25 @@ class MacOSWindow(BaseWindow):
                     part = ""
                     for lev, item in enumerate(itemPath[:-1]):
                         if lev % 2 == 0:
-                            part = str(' of menu "%s"' % item) + part
+                            part = str(' of menu "{}"'.format(item)) + part
                         else:
-                            part = str(' of menu item "%s"' % item) + part
-                    subCmd = str('set attrList to properties of every attribute of menu item "%s"' % itemPath[-1]) + part + str(' of menu bar item "%s"' % itemPath[0])
+                            part = str(' of menu item "{}"'.format(item)) + part
+                    subCmd = str('set attrList to properties of every attribute of menu item "{}"'.format(itemPath[-1])) + part + str(' of menu bar item "{}"'.format(itemPath[0]))
                     # subCmd2 = str('set propList to properties of menu item "%s"' % itemPath[-1]) + part + str(' of menu bar item "%s"' % itemPath[0])
 
                     cmd = """on run arg1
                                 set procName to arg1 as string
-                                set attrList to {}
+                                set attrList to {{}}
                                     tell application "System Events"
                                         tell process procName
                                             tell menu bar 1
-                                                %s
+                                                {}
                                             end tell
                                         end tell
                                     end tell
                                 return attrList
                             end run
-                            """ % subCmd
+                            """.format(subCmd)
                     # https://stackoverflow.com/questions/69774133/how-to-use-global-variables-inside-of-an-applescript-function-for-a-python-code
                     # Didn't find a way to get the "injected code" working if passed this way
                     proc = subprocess.Popen(['osascript', '-s', 's', '-', str(self._parent._app.localizedName())], 
@@ -1746,26 +1746,26 @@ class MacOSWindow(BaseWindow):
                     part = ""
                     for i, item in enumerate(itemPath[1:-1]):
                         if i % 2 == 0:
-                            part = str(' of menu "%s" of menu item "%s"' % (item, item)) + part
+                            part = str(' of menu "{}" of menu item "{}"'.format(item, item)) + part
                         else:
-                            part = str(' of menu item "%s" of menu "%s"' % (item, item)) + part
-                    subCmd = str('set itemRect to {position, size} of menu item "%s"' % itemPath[-1]) + part + str(' of menu "%s" of menu bar item "%s"' % (itemPath[0], itemPath[0]))
+                            part = str(' of menu item "{}" of menu "{}"'.format(item, item)) + part
+                    subCmd = str('set itemRect to {{position, size}} of menu item "{}"'.format(itemPath[-1])) + part + str(' of menu "{}" of menu bar item "{}"'.format(itemPath[0], itemPath[0]))
 
                     cmd = """on run arg1
                                 set procName to arg1 as string
-                                set itemRect to {{0, 0}, {0, 0}}
+                                set itemRect to {{{{0, 0}}, {{0, 0}}}}
                                 try
                                     tell application "System Events"
                                         tell process procName
                                             tell menu bar 1
-                                                %s
+                                                {}
                                             end tell
                                         end tell
                                     end tell
                                 end try
                                 return itemRect
                             end run
-                            """ % subCmd
+                            """.format(subCmd)
 
                     proc = subprocess.Popen(['osascript', '-s', 's', '-', str(self._parent._app.localizedName())], 
                                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf8')

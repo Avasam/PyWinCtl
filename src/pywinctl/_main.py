@@ -22,7 +22,7 @@ class BaseWindow(ABC):
 
     def __str__(self) -> str:
         box = self._box.box
-        return '<%s left="%s", top="%s", width="%s", height="%s", title="%s">' % (
+        return '<{} left="{}", top="{}", width="{}", height="{}", title="{}">'.format(
             self.__class__.__qualname__,
             box.left,
             box.top,
@@ -971,7 +971,7 @@ def displayWindowsUnderMouse(xOffset: int = 0, yOffset: int = 0) -> None:
     of the windows under it
     """
     if xOffset != 0 or yOffset != 0:
-        print('xOffset: %s yOffset: %s' % (xOffset, yOffset))
+        print('xOffset: {} yOffset: {}'.format(xOffset, yOffset))
     try:
         prevWindows = None
         while True:

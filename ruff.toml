@@ -43,8 +43,7 @@ ignore = [
   # Anyway Python 3.11 introduced "zero cost" exception handling
   "PERF203", # try-except-in-loop,
 
-  # TODO: Consider later
-  "UP031", # printf-string-formatting
+  # TODO: First extracting all the oascript calls to a helper would be beneficial
   "RUF059", # unused-unpacked-variable
 ]
 # F401 would remove imports not marked as explicit re-exports, which may break API boundaries
