@@ -676,20 +676,16 @@ class _WatchDogWorker(threading.Thread):
 
             try:
                 if self._isAliveCB and not self._win.isAlive:
-                    if sys.platform == "darwin":
-                        # In macOS AppScript version, if title changes, it will consider window is not alive anymore
-                        if self._tryToFind:
-                            title = self._win.title
-                            if self._title != title:
-                                title = self._win.updatedTitle
-                                self._title = title
-                                if self._changedTitleCB:
-                                    self._changedTitleCB(title)
-                        if not self._tryToFind or (self._tryToFind and not self._title):
-                            self._isAliveCB(False)
-                            self.kill()
-                            break
-                    else:
+                    # In macOS AppScript version, if title changes, it will consider window is not alive anymore
+                    tryToFind = sys.platform == "darwin" and self._tryToFind
+                    if tryToFind:
+                        title = self._win.title
+                        if self._title != title:
+                            title = self._win.updatedTitle  # pyright: ignore[reportAttributeAccessIssue]
+                            self._title = title
+                            if self._changedTitleCB:
+                                self._changedTitleCB(title)
+                    if not tryToFind or not self._title:
                         self._isAliveCB(False)
                         self.kill()
                         break
